@@ -240,4 +240,5 @@ def extract_info():
 # --- Run the Flask App ---
 if __name__ == '__main__':
     # Set debug=False when deploying to production
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    debug = (os.environ.get("DEBUG") == "True")
+    app.run(host='0.0.0.0', port=5000, debug=debug)
