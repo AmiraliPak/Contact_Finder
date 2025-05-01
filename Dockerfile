@@ -10,9 +10,7 @@ RUN apk add --no-cache \
       ttf-freefont
 
 # 2) point Selenium at the Alpine chromium
-ENV CHROME_BIN=/usr/bin/chromium-browser \
-    CHROMEDRIVER_PATH=/usr/bin/chromedriver \
-    PYTHONDONTWRITEBYTECODE=1 \
+ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # 3) install Python deps
