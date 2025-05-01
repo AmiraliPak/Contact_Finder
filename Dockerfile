@@ -5,12 +5,15 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Install Chrome dependencies & Chrome
-RUN apt-get update && apt-get install -y wget gnupg ca-certificates \
-    libnss3 libxss1 libappindicator1 libgconf-2-4 fonts-liberation \
-    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update && apt-get install -y google-chrome-stable \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Download the .deb and install it directly
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl gnupg ca-certificates \
+ && curl -Lo /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends /tmp/chrome.deb \
+ && rm /tmp/chrome.deb \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Install ChromeDriver
 RUN CHROME_DRIVER_VERSION=$(curl -sSL https://chromedriver.storage.googleapis.com/LATEST_RELEASE) && \
