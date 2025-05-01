@@ -5,16 +5,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Install Chrome dependencies & Chrome
-RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg \
-    libnss3 \
-    libxss1 \
-    libappindicator1 \
-    libgconf-2-4 \
-    fonts-liberation \
-    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+RUN apt-get update && apt-get install -y wget gnupg ca-certificates \
+    libnss3 libxss1 libappindicator1 libgconf-2-4 fonts-liberation \
+    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update && apt-get install -y google-chrome-stable \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
