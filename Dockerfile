@@ -12,7 +12,6 @@ RUN apk add --no-cache \
 # 2) point Selenium at the Alpine chromium
 ENV CHROME_BIN=/usr/bin/chromium-browser \
     CHROMEDRIVER_PATH=/usr/bin/chromedriver \
-    PATH="/usr/bin/chromium-browser:/usr/bin/chromedriver:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 

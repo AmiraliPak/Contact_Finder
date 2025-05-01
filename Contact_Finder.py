@@ -71,8 +71,12 @@ def extract_info():
     phones_found = set()
 
     try:
-        service = Service(executable_path="/usr/bin/chromedriver")
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver_path = os.environ.get("DRIVER_PATH")
+        if driver_path:
+            service = Service(executable_path=driver_path)
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+        else:
+            driver = webdriver.Chrome(options=chrome_options)
         driver.set_page_load_timeout(45) # Timeout for initial page load request
 
         print(f"Attempting to load URL: {target_url}")
