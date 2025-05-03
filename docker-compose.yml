@@ -1,6 +1,6 @@
 networks:
   custom_bridge:
-    driver: bridge
+    driver: host
 
 services:
   website_contact_finder:
@@ -8,7 +8,7 @@ services:
     image: website_contact_finder
     container_name: website_contact_finder
     restart: unless-stopped
-    ports:
+    ports: # ignored for host network
       - "5000:5000"
     networks:
       - custom_bridge
