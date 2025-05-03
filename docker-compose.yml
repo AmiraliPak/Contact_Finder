@@ -7,8 +7,6 @@ services:
     network_mode: host
     ports: # ignored for host network
       - "5000:5000"
-    networks:
-      - custom_bridge
     env_file:
       - .env                   # load your environment variables
     # environment:
