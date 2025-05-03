@@ -9,12 +9,13 @@ from selenium.webdriver.support.ui import WebDriverWait # For explicit waits
 from selenium.webdriver.support import expected_conditions as EC # For explicit waits
 from selenium.webdriver.common.by import By # For explicit waits selectors
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote, urljoin
 import time # Keep time for potential future use, though not for main wait now
 import os
 import re
 from dotenv import load_dotenv
 import traceback # For detailed error logging
+import requests
 
 # --- Load environment variables from .env file ---
 load_dotenv()
@@ -43,6 +44,29 @@ PHONE_REGEX = r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4,}"
 # --- Flask App Setup ---
 app = Flask(__name__)
 
+def normalize_url(url):
+    """Normalize URL to get the landing page URL."""
+    if not url:
+        return None
+        
+    # Add scheme if missing
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+        
+    try:
+        # Make a HEAD request to check for redirects
+        response = requests.head(url, allow_redirects=True, timeout=10)
+        final_url = response.url
+        
+        # Parse the URL to get the base domain
+        parsed = urlparse(final_url)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+        
+        return base_url
+    except Exception as e:
+        print(f"Error normalizing URL {url}: {e}")
+        return url
+
 # --- API Endpoint ---
 @app.route('/extract-info', methods=['POST'])
 def extract_info():
@@ -60,7 +84,7 @@ def extract_info():
     data = request.get_json()
     if not data or 'url' not in data:
         return jsonify({"error": "Missing 'url' in request body"}), 400
-    target_url = data['url']
+    target_url = normalize_url(data['url'])
     print(f"\n--- New Request ---")
     print(f"Target URL: {target_url}")
 
