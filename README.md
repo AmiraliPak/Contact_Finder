@@ -45,6 +45,13 @@ The service provides a secure API endpoint that processes URLs and returns struc
 3. Create a `.env` file in the project root with your API key:
    ```
    MY_API_SECRET=your_secure_api_key_here
+
+   # 'True' for debugging - Optional - Default: False
+   DEBUG=False
+
+   # Optional - e.g. '/usr/bin/chromedriver'
+   # Set the path if "driver not found" error is encountered.
+   DRIVER_PATH=path_to_chromedriver
    ```
 
 ## Usage
@@ -118,6 +125,12 @@ For production deployment:
 Example production startup with Gunicorn:
 ```
 gunicorn -w 4 -b 0.0.0.0:5000 "Contact_Finder:app"
+```
+
+Example production startup using Docker:
+```
+docker compose up -d
+docker compose logs -f # Run to see logs
 ```
 
 ## Security Considerations
