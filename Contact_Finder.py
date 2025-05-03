@@ -31,10 +31,24 @@ chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64
 
 # Define social media domains
 SOCIAL_MEDIA_DOMAINS = {
-  'twitter.com', 'x.com', 'facebook.com', 'fb.com', 'instagram.com', 'linkedin.com',
-  'youtube.com', 'youtu.be', 'pinterest.com', 'tiktok.com', 'snapchat.com', 'reddit.com',
-  'tumblr.com', 'whatsapp.com', 'wa.me', 't.me', 'telegram.me', 'discord.gg',
-  'discord.com', 'medium.com', 'github.com', 'threads.net', 'mastodon.social',
+    'FACEBOOK':     ['facebook.com', 'fb.com'],
+    'YOUTUBE':      ['youtube.com', 'youtu.be'],
+    'INSTAGRAM':    ['instagram.com'],
+    'TIKTOK':       ['tiktok.com'],
+    'TWITTER':      ['twitter.com', 'x.com'],
+    'LINKEDIN':     ['linkedin.com'],
+    'SNAPCHAT':     ['snapchat.com'],
+    'DISCORD':      ['discord.gg', 'discord.com'],
+    'PINTEREST':    ['pinterest.com'],
+    'TELEGRAM':     ['t.me', 'telegram.me'],
+    'WHATSAPP':     ['whatsapp.com', 'wa.me'],
+    'REDDIT':       ['reddit.com'],
+    'TWITCH':       ['twitch.tv'],
+    'GITHUB':       ['github.com'],
+    'THREADS':      ['threads.net'],
+    'MEDIUM':       ['medium.com'],
+    'TUMBLR':       ['tumblr.com'],
+    'MASTODON':     ['mastodon.social'],
 }
 
 # --- Regex Patterns ---
@@ -92,7 +106,7 @@ def extract_info():
 
     # --- Scrape using Selenium ---
     driver = None
-    social_links_found = set()
+    social_links_by_platform = {platform: set() for platform in SOCIAL_MEDIA_DOMAINS.keys()}
     emails_found = set()
     phones_found = set()
 
@@ -204,15 +218,28 @@ def extract_info():
                 if not hostname:
                     continue
 
-                for social_domain in SOCIAL_MEDIA_DOMAINS:
-                    # Check if the hostname exactly matches or ends with .social_domain (for subdomains like blog.twitter.com)
-                    if hostname == social_domain or hostname.endswith('.' + social_domain):
-                        social_links_found.add(href)
-                        # print(f"Found social link: {href}")
-                        break # Found a match for this link's domain, check next link tag
+                # Check against all social media domains
+                social_matched = False
+                for platform, domains in SOCIAL_MEDIA_DOMAINS.items():
+                    for domain in domains:
+                        # Check if the hostname exactly matches or ends with .social_domain (for subdomains like blog.twitter.com)
+                        if hostname == domain or hostname.endswith('.' + domain):
+                            social_links_by_platform[platform].add(href)
+                            # print(f"Found social link: {href}")
+                            social_matched = True
+                            break
+                    if social_matched:
+                        break  # Found a match, no need to check other platforms
             except Exception as parse_err:
                 # print(f"Error parsing potential social link '{href}': {parse_err}")
                 pass # Ignore errors for individual link parsing
+
+        # Filter out platforms with no links and sort platforms
+        social_links_output = {
+            platform: sorted(list(links)) 
+            for platform, links in sorted(social_links_by_platform.items()) 
+            if links
+        }
 
         # 2. Extract from Page Text using Regex (Emails and Phones)
         page_text = ""
@@ -243,14 +270,13 @@ def extract_info():
         else:
             print("WARNING: Could not find body tag in HTML source for text extraction.")
 
-
-        print(f"Extraction complete. Found: {len(social_links_found)} social, {len(emails_found)} emails, {len(phones_found)} phones.")
+        print(f"Extraction complete. Found: {sum(len(links) for links in social_links_output.values())} social, {len(emails_found)} emails, {len(phones_found)} phones.")
         
         # Extract logo URL
         logo_url = extract_logo_url(soup, target_url)
         
         return jsonify({
-            "social_links": sorted(list(social_links_found)),
+            "social_links": social_links_output,
             "emails": sorted(list(emails_found)),
             "phone_numbers": sorted(list(phones_found)),
             "logo_url": logo_url
