@@ -124,6 +124,7 @@ def extract_info():
                  "social_links": [],
                  "emails": [],
                  "phone_numbers": [],
+                 "logo_url": None,
                  "status": "Warning: Could not retrieve page source or source was empty."
              }), 200 # Return 200 OK but indicate potential issue
 
@@ -217,10 +218,15 @@ def extract_info():
 
 
         print(f"Extraction complete. Found: {len(social_links_found)} social, {len(emails_found)} emails, {len(phones_found)} phones.")
+        
+        # Extract logo URL
+        logo_url = extract_logo_url(soup, target_url)
+        
         return jsonify({
             "social_links": sorted(list(social_links_found)),
             "emails": sorted(list(emails_found)),
-            "phone_numbers": sorted(list(phones_found))
+            "phone_numbers": sorted(list(phones_found)),
+            "logo_url": logo_url
         }), 200
 
     except TimeoutException as e: # Catches the driver.get() timeout OR the explicit wait timeout if not caught inside
@@ -241,6 +247,101 @@ def extract_info():
         if driver:
             print("Closing WebDriver.")
             driver.quit()
+
+def extract_logo_url(soup, base_url):
+    """Extract the logo URL from the webpage with improved validation."""
+    logo_url = None
+    
+    # Try to get the base domain for relative URLs
+    try:
+        parsed_url = urlparse(base_url)
+        base_domain = f"{parsed_url.scheme}://{parsed_url.netloc}"
+    except:
+        base_domain = base_url
+
+    def normalize_url(url):
+        """Convert relative URLs to absolute URLs."""
+        if not url:
+            return None
+        if not url.startswith(('http://', 'https://')):
+            return base_domain + ('/' if not url.startswith('/') else '') + url
+        return url
+
+    def is_likely_logo(img_element):
+        """Validate if an image element is likely to be a logo."""
+        if not img_element:
+            return False
+            
+        # Check image dimensions (logos are typically square-ish and not too large)
+        width = img_element.get('width')
+        height = img_element.get('height')
+        if width and height:
+            try:
+                w = int(width)
+                h = int(height)
+                # Logos are typically not too large and maintain reasonable aspect ratio
+                if w > 500 or h > 500 or (w > 0 and h > 0 and (w/h > 3 or h/w > 3)):
+                    return False
+            except ValueError:
+                pass
+
+        # Check if image is in header/navbar
+        parent = img_element.parent
+        while parent:
+            parent_class = parent.get('class', [])
+            parent_id = parent.get('id', '')
+            if any(x in str(parent_class).lower() or x in str(parent_id).lower() 
+                  for x in ['header', 'navbar', 'nav', 'brand', 'logo']):
+                return True
+            parent = parent.parent
+
+        return False
+
+    # 1. Check for favicon/shortcut icon (most reliable for brand identity)
+    favicon = soup.find('link', rel=lambda x: x and ('icon' in x.lower() or 'shortcut' in x.lower()))
+    if favicon and favicon.get('href'):
+        return normalize_url(favicon['href'])
+
+    # 2. Check for og:image meta tag (usually the main brand image)
+    og_image = soup.find('meta', property='og:image')
+    if og_image and og_image.get('content'):
+        return normalize_url(og_image['content'])
+
+    # 3. Look for logo in header/navbar first
+    header = soup.find(['header', 'nav'], class_=lambda x: x and any(term in str(x).lower() 
+                                                                     for term in ['header', 'navbar', 'nav']))
+    if header:
+        # Look for images with logo-related attributes
+        logo_img = header.find('img', 
+                             attrs={'alt': lambda x: x and any(term in str(x).lower() 
+                                                             for term in ['logo', 'brand'])})
+        if logo_img and logo_img.get('src'):
+            return normalize_url(logo_img['src'])
+
+    # 4. Look for images with specific logo-related attributes
+    logo_patterns = [
+        'logo', 'brand', 'header-logo', 'site-logo', 'company-logo',
+        'navbar-logo', 'nav-logo', 'header-brand', 'site-brand'
+    ]
+    
+    for pattern in logo_patterns:
+        # Check by ID
+        logo_img = soup.find('img', id=lambda x: x and pattern in str(x).lower())
+        if logo_img and is_likely_logo(logo_img) and logo_img.get('src'):
+            return normalize_url(logo_img['src'])
+            
+        # Check by class
+        logo_img = soup.find('img', class_=lambda x: x and pattern in str(x).lower())
+        if logo_img and is_likely_logo(logo_img) and logo_img.get('src'):
+            return normalize_url(logo_img['src'])
+
+    # 5. As a last resort, look for the first image in the header that might be a logo
+    if header:
+        for img in header.find_all('img'):
+            if is_likely_logo(img) and img.get('src'):
+                return normalize_url(img['src'])
+
+    return None
 
 @app.route('/health', methods=['GET'])
 def health_check():
