@@ -242,6 +242,11 @@ def extract_info():
             print("Closing WebDriver.")
             driver.quit()
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Simple health check endpoint."""
+    return jsonify({"status": "active"}), 200
+
 # --- Run the Flask App ---
 if __name__ == '__main__':
     # Set debug=False when deploying to production
