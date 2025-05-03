@@ -65,7 +65,7 @@ def normalize_url(url):
         return base_url
     except Exception as e:
         print(f"Error normalizing URL {url}: {e}")
-        return url
+        return None
 
 # --- API Endpoint ---
 @app.route('/extract-info', methods=['POST'])
@@ -84,8 +84,10 @@ def extract_info():
     data = request.get_json()
     if not data or 'url' not in data:
         return jsonify({"error": "Missing 'url' in request body"}), 400
-    target_url = normalize_url(data['url'])
     print(f"\n--- New Request ---")
+    target_url = normalize_url(data['url'])
+    if not target_url:
+        return jsonify({"error": "Invalid or unreachable URL"}), 400
     print(f"Target URL: {target_url}")
 
     # --- Scrape using Selenium ---
