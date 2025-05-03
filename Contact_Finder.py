@@ -162,7 +162,7 @@ def extract_info():
              print("WARNING: Page source is empty after wait. Skipping parsing.")
              # Optionally return a specific status or warning in JSON
              return jsonify({
-                 "social_links": [],
+                 "social_links": {},
                  "emails": [],
                  "phone_numbers": [],
                  "logo_url": None,

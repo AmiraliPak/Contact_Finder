@@ -82,10 +82,11 @@ Request Body:
 Example Response:
 ```json
 {
-  "social_links": [
-    "https://twitter.com/example",
-    "https://www.linkedin.com/company/example"
-  ],
+  "logo_url": "https://example.com/logo.co",
+  "social_links": {
+    "LINKEDIN": ["https://www.linkedin.com/company/example"],
+    "X": ["https://twitter.com/example"]
+  },
   "emails": [
     "contact@example.com",
     "support@example.com"
