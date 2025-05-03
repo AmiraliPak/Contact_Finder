@@ -108,13 +108,14 @@ def extract_info():
         print(f"Got page source, length: {source_length}")
 
         # --- DEBUG: Save HTML Source ---
-        try:
-            debug_filename = "debug_page_source.html"
-            with open(debug_filename, "w", encoding="utf-8") as f:
-                f.write(page_source if page_source else "<html><body>Error: Page source was empty or None</body></html>")
-            print(f"Saved page source for debugging to: {debug_filename}")
-        except Exception as e:
-            print(f"Error saving debug HTML file: {e}")
+        if app.debug:
+            try:
+                debug_filename = "debug_page_source.html"
+                with open(debug_filename, "w", encoding="utf-8") as f:
+                    f.write(page_source if page_source else "<html><body>Error: Page source was empty or None</body></html>")
+                print(f"Saved page source for debugging to: {debug_filename}")
+            except Exception as e:
+                print(f"Error saving debug HTML file: {e}")
         # --- End Debug ---
 
         if not page_source:
