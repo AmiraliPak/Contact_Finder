@@ -71,7 +71,12 @@ def extract_info():
     phones_found = set()
 
     try:
-        driver = webdriver.Chrome(options=chrome_options)
+        driver_path = os.environ.get("DRIVER_PATH")
+        if driver_path:
+            service = Service(executable_path=driver_path)
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+        else:
+            driver = webdriver.Chrome(options=chrome_options)
         driver.set_page_load_timeout(45) # Timeout for initial page load request
 
         print(f"Attempting to load URL: {target_url}")
@@ -240,4 +245,5 @@ def extract_info():
 # --- Run the Flask App ---
 if __name__ == '__main__':
     # Set debug=False when deploying to production
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    debug = (os.environ.get("DEBUG") == "True")
+    app.run(host='0.0.0.0', port=5000, debug=debug)

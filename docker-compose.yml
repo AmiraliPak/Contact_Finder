@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  website_contact_finder:
+    build: .
+    image: website_contact_finder
+    container_name: website_contact_finder
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env                   # load your environment variables
+    # environment:
+    #   - DEBUG=False
