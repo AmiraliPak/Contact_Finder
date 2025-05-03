@@ -35,7 +35,7 @@ SOCIAL_MEDIA_DOMAINS = {
     'YOUTUBE':      ['youtube.com', 'youtu.be'],
     'INSTAGRAM':    ['instagram.com'],
     'TIKTOK':       ['tiktok.com'],
-    'TWITTER':      ['twitter.com', 'x.com'],
+    'X':      ['twitter.com', 'x.com'],
     'LINKEDIN':     ['linkedin.com'],
     'SNAPCHAT':     ['snapchat.com'],
     'DISCORD':      ['discord.gg', 'discord.com'],
